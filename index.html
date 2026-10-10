@@ -21,18 +21,16 @@
                  background:rgba(0,0,0,0.85); color:#FFD700; padding:10px 14px;
                  border-radius:10px; font-size:15px; font-weight:bold; }
 
-    /* Pantalla de VICTORIA (verde) */
     #victoria { display:none; position:fixed; inset:0; z-index:2147483600;
                 background:rgba(0,40,0,0.95); color:white; text-align:center;
                 padding-top:20vh; font-family:Arial,sans-serif; }
     #victoria h1 { font-size:38px; color:#FFD700; margin:10px; }
-    #victoria h2 { font-size:26px; color:#90EE90; margin:8px; }
+    #victoria h2 { font-size:24px; color:#90EE90; margin:8px; }
     #victoria p  { font-size:20px; margin:6px; }
     #victoria button { margin-top:22px; padding:14px 28px; font-size:17px;
                        border:none; border-radius:10px; cursor:pointer;
                        background:#51cf66; color:white; font-weight:bold; }
 
-    /* Pantalla de DERROTA (roja) */
     #derrota { display:none; position:fixed; inset:0; z-index:2147483600;
                background:rgba(60,0,0,0.95); color:white; text-align:center;
                padding-top:20vh; font-family:Arial,sans-serif; }
@@ -43,7 +41,6 @@
                       border:none; border-radius:10px; cursor:pointer;
                       background:#ff6b6b; color:white; font-weight:bold; }
 
-    /* Mensaje de paso de nivel */
     #mensajeNivel {
       position:fixed; inset:0; z-index:2147483500;
       background:rgba(0,0,0,0.9); color:white;
@@ -60,7 +57,7 @@
 <body>
 
   <div id="panel">
-    <div>Puntos: <span id="puntos">0</span></div>
+    <div>Puntos: <span id="puntos">30</span></div>
     <div>Tiempo: <span id="tiempo">90</span> s</div>
     <div>Bananas: <span id="monedas">0/0</span></div>
     <div>Récord: <span id="record">0</span></div>
@@ -69,7 +66,7 @@
 
   <div id="nivelInfo">Nivel <span id="nivel">1</span> / 3</div>
 
-  <!-- 🏆 PANTALLA DE VICTORIA -->
+  <!-- 🏆 VICTORIA -->
   <div id="victoria">
     <h1>🏆 ¡VICTORIA! 🏆</h1>
     <h2>🐵 ¡El mono se comió todas las bananas! 🍌</h2>
@@ -78,9 +75,9 @@
     <button onclick="reiniciarJuego()">Jugar de nuevo</button>
   </div>
 
-  <!-- 💀 PANTALLA DE DERROTA -->
+  <!-- 💀 DERROTA -->
   <div id="derrota">
-    <h1 id="tituloDerrota">💀 DERROTA 💀</h1>
+    <h1 id="tituloDerrota">💀 ¡Te comieron! 💀</h1>
     <h2 id="subtituloDerrota">Te han comido</h2>
     <p id="puntosDerrota">Puntos: 0</p>
     <p id="recordDerrota">Récord: 0</p>
@@ -94,17 +91,50 @@
     style="position:fixed; top:0; left:0; width:100vw; height:100vh;">
 
     <a-marker preset="hiro" id="marcador">
+
       <!-- Piso selva -->
       <a-circle position="0 0.005 0" rotation="-90 0 0" radius="0.45"
                 color="#2d5016" opacity="0.75"></a-circle>
 
-      <!-- 🐵 MONO 3D (glTF público de un mono) -->
-      <a-entity
-        id="mono"
-        gltf-model="https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/Monkey/glTF-Binary/Monkey.glb"
-        position="0 0 0"
-        scale="0.25 0.25 0.25"
-        rotation="0 0 0">
+      <!-- 🐵 MONO 3D (con primitivas A-Frame) -->
+      <a-entity id="mono" position="0 0 0" rotation="0 0 0">
+
+        <!-- Cuerpo -->
+        <a-sphere position="0 0.09 0" radius="0.07" color="#8B5A2B"></a-sphere>
+
+        <!-- Cabeza -->
+        <a-sphere position="0 0.20 0" radius="0.055" color="#A0522D"></a-sphere>
+
+        <!-- Hocico -->
+        <a-sphere position="0 0.185 0.045" radius="0.03" color="#F5DEB3"></a-sphere>
+
+        <!-- Ojos -->
+        <a-sphere position="-0.02 0.22 0.045" radius="0.008" color="#000"></a-sphere>
+        <a-sphere position=" 0.02 0.22 0.045" radius="0.008" color="#000"></a-sphere>
+
+        <!-- Orejas -->
+        <a-sphere position="-0.05 0.22 0" radius="0.02" color="#8B5A2B"></a-sphere>
+        <a-sphere position=" 0.05 0.22 0" radius="0.02" color="#8B5A2B"></a-sphere>
+
+        <!-- Brazos -->
+        <a-cylinder position="-0.075 0.10 0" radius="0.012" height="0.08"
+                    color="#8B5A2B" rotation="0 0 30"></a-cylinder>
+        <a-cylinder position=" 0.075 0.10 0" radius="0.012" height="0.08"
+                    color="#8B5A2B" rotation="0 0 -30"></a-cylinder>
+
+        <!-- Piernas -->
+        <a-cylinder position="-0.03 0.02 0" radius="0.014" height="0.07"
+                    color="#8B5A2B"></a-cylinder>
+        <a-cylinder position=" 0.03 0.02 0" radius="0.014" height="0.07"
+                    color="#8B5A2B"></a-cylinder>
+
+        <!-- Cola -->
+        <a-cylinder position="0 0.06 -0.09" radius="0.008" height="0.1"
+                    color="#8B5A2B" rotation="70 0 0"></a-cylinder>
+
+        <!-- Indicador de dirección (nariz amarilla al frente) -->
+        <a-cone position="0 0.14 -0.08" radius-bottom="0.02" radius-top="0"
+                height="0.05" color="#FFD700" rotation="90 0 0"></a-cone>
       </a-entity>
 
       <a-entity id="contenedorMonedas"></a-entity>
@@ -130,7 +160,7 @@
 /* =========================
    ESTADO DEL JUEGO
    ========================= */
-let puntos = 0, tiempo = 90, nivel = 1;
+let puntos = 30, tiempo = 90, nivel = 1;   // ← EMPIEZA CON 30 PUNTOS
 let partidaActiva = true;
 let intervaloTiempo = null;
 let record = parseInt(localStorage.getItem('monoBananasRecord')) || 0;
@@ -154,6 +184,7 @@ const $monedas = document.getElementById('monedas');
 const $record = document.getElementById('record');
 const $nivel  = document.getElementById('nivel');
 $record.textContent = record;
+$puntos.textContent = puntos;
 
 /* =========================
    SONIDOS
@@ -170,16 +201,13 @@ function sonar(freq=800, dur=0.12, tipo='sine'){
     o.start(); o.stop(audioCtx.currentTime+dur);
   } catch(e) {}
 }
-// 🍌 Banana: sonido agudo y alegre
 const sonidoBanana  = () => {
   sonar(1400, 0.08, 'square');
   setTimeout(() => sonar(1800, 0.10, 'square'), 80);
 };
-// 🐆 Enemigo: gruñido grave
 const sonidoEnemigo = () => sonar(140, 0.4, 'sawtooth');
 const sonidoVictoria = () => [523,659,784,1046].forEach((f,i)=>
   setTimeout(()=>sonar(f,0.25,'triangle'), i*180));
-// 💀 Derrota: sonido triste descendente
 const sonidoDerrota = () => [500, 400, 300, 200].forEach((f,i)=>
   setTimeout(()=>sonar(f, 0.3, 'sine'), i*200));
 
@@ -236,11 +264,9 @@ function detectarColisiones(){
 
     if(dist < radioColision){
       if(obj.classList.contains('moneda')) {
-        // 🍌 Banana = +10 puntos
         puntos += 10;
         sonidoBanana();
       } else if(obj.classList.contains('enemigo')) {
-        // 🐆 Enemigo = -15 puntos
         puntos -= 15;
         sonidoEnemigo();
       }
@@ -283,14 +309,13 @@ function posAleatoria(){
   return `${x} ${y} ${z}`;
 }
 
-// 🍌 Banana (cilindro amarillo curvado = banana estilizada)
+/* 🍌 Banana */
 function crearBanana(){
   const el = document.createElement('a-entity');
   el.setAttribute('class','moneda');
   el.setAttribute('position', posAleatoria());
   el.setAttribute('visible', 'true');
 
-  // Cuerpo de la banana (cilindro delgado amarillo)
   const cuerpo = document.createElement('a-cylinder');
   cuerpo.setAttribute('radius', '0.035');
   cuerpo.setAttribute('height', '0.18');
@@ -298,34 +323,30 @@ function crearBanana(){
   cuerpo.setAttribute('rotation', '0 0 45');
   el.appendChild(cuerpo);
 
-  // Punta café
   const punta = document.createElement('a-sphere');
   punta.setAttribute('radius', '0.02');
   punta.setAttribute('color', '#5C3317');
   punta.setAttribute('position', '0.06 0.08 0');
   el.appendChild(punta);
 
-  // Animación de giro
   el.setAttribute('animation',
     'property: rotation; to: 0 360 0; loop: true; dur: 2000');
 
   return el;
 }
 
-// 🐆 Enemigo: pantera/jaguar (esfera roja con ojos)
+/* 🐆 Pantera */
 function crearEnemigo(){
   const el = document.createElement('a-entity');
   el.setAttribute('class','enemigo');
   el.setAttribute('position', posAleatoria());
   el.setAttribute('visible', 'true');
 
-  // Cuerpo (esfera oscura rojiza)
   const cuerpo = document.createElement('a-sphere');
   cuerpo.setAttribute('radius', '0.08');
   cuerpo.setAttribute('color', '#8B0000');
   el.appendChild(cuerpo);
 
-  // Ojos amarillos brillantes
   const ojo1 = document.createElement('a-sphere');
   ojo1.setAttribute('radius', '0.015');
   ojo1.setAttribute('color', '#FFFF00');
@@ -338,7 +359,6 @@ function crearEnemigo(){
   ojo2.setAttribute('position', '0.03 0.02 0.07');
   el.appendChild(ojo2);
 
-  // Animación de acecho
   el.setAttribute('animation',
     'property: position; dir: alternate; loop: true; dur: 700; to: 0 0.15 0');
 
@@ -468,7 +488,10 @@ function reiniciarJuego(){
   clearInterval(intervaloTiempo);
   quitarMensaje();
 
-  puntos = 0; nivel = 1; partidaActiva = true; nivelCompletado = false;
+  puntos = 30;              // ← REINICIA CON 30 PUNTOS
+  nivel = 1;
+  partidaActiva = true;
+  nivelCompletado = false;
   $puntos.textContent = puntos;
 
   document.getElementById('victoria').style.display = 'none';
