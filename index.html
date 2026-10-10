@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+  <title>Mono Bananas - AR Quest</title>
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.7/aframe/build/aframe-ar.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.loaders.min.js"></script>
+  <style>
+    html, body { margin:0; padding:0; font-family:Arial,sans-serif; overflow:hidden;
+                 width:100vw; height:100vh; position:fixed; top:0; left:0; }
+    #panel { position:fixed; top:10px; left:10px; z-index:999999;
+             background:rgba(0,0,0,0.85); color:white; padding:10px 14px;
+             border-radius:10px; font-size:15px; min-width:160px; }
+    #panel div { margin:3px 0; }
+    #reiniciar { margin-top:6px; padding:6px 10px; border:none; border-radius:6px;
+                 cursor:pointer; width:100%; background:#ff6b6b; color:white;
+                 font-weight:bold; font-size:13px; }
+    #nivelInfo { position:fixed; top:10px; right:10px; z-index:999999;
+                 background:rgba(0,0,0,0.85); color:#FFD700; padding:10px 14px;
+                 border-radius:10px; font-size:15px; font-weight:bold; }
+
+    /* Pantalla de VICTORIA (verde) */
+    #victoria { display:none; position:fixed; inset:0; z-index:2147483600;
+                background:rgba(0,40,0,0.95); color:white; text-align:center;
+                padding-top:20vh; font-family:Arial,sans-serif; }
+    #victoria h1 { font-size:38px; color:#FFD700; margin:10px; }
+    #victoria h2 { font-size:26px; color:#90EE90; margin:8px; }
+    #victoria p  { font-size:20px; margin:6px; }
+    #victoria button { margin-top:22px; padding:14px 28px; font-size:17px;
+                       border:none; border-radius:10px; cursor:pointer;
+                       background:#51cf66; color:white; font-weight:bold; }
+
+    /* Pantalla de DERROTA (roja) */
+    #derrota { display:none; position:fixed; inset:0; z-index:2147483600;
+               background:rgba(60,0,0,0.95); color:white; text-align:center;
+               padding-top:20vh; font-family:Arial,sans-serif; }
+    #derrota h1 { font-size:38px; color:#FF4444; margin:10px; }
+    #derrota h2 { font-size:24px; color:#FFAA00; margin:8px; }
+    #derrota p  { font-size:20px; margin:6px; }
+    #derrota button { margin-top:22px; padding:14px 28px; font-size:17px;
+                      border:none; border-radius:10px; cursor:pointer;
+                      background:#ff6b6b; color:white; font-weight:bold; }
+
+    /* Mensaje de paso de nivel */
+    #mensajeNivel {
+      position:fixed; inset:0; z-index:2147483500;
+      background:rgba(0,0,0,0.9); color:white;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      text-align:center; font-family:Arial,sans-serif;
+      pointer-events:none;
+    }
+    .a-enter-vr { display:none !important; }
+    a-scene { width:100vw !important; height:100vh !important; }
+  </style>
+</head>
+
+<body>
+
+  <div id="panel">
+    <div>Puntos: <span id="puntos">0</span></div>
+    <div>Tiempo: <span id="tiempo">90</span> s</div>
+    <div>Bananas: <span id="monedas">0/0</span></div>
+    <div>Récord: <span id="record">0</span></div>
+    <button id="reiniciar">🔄 Reiniciar</button>
+  </div>
+
+  <div id="nivelInfo">Nivel <span id="nivel">1</span> / 3</div>
+
+  <!-- 🏆 PANTALLA DE VICTORIA -->
+  <div id="victoria">
+    <h1>🏆 ¡VICTORIA! 🏆</h1>
+    <h2>🐵 ¡El mono se comió todas las bananas! 🍌</h2>
+    <p id="puntosFinales">Puntos: 0</p>
+    <p id="recordFinal">Récord: 0</p>
+    <button onclick="reiniciarJuego()">Jugar de nuevo</button>
+  </div>
+
+  <!-- 💀 PANTALLA DE DERROTA -->
+  <div id="derrota">
+    <h1 id="tituloDerrota">💀 DERROTA 💀</h1>
+    <h2 id="subtituloDerrota">Te han comido</h2>
+    <p id="puntosDerrota">Puntos: 0</p>
+    <p id="recordDerrota">Récord: 0</p>
+    <button onclick="reiniciarJuego()">Intentar de nuevo</button>
+  </div>
+
+  <a-scene embedded
+    vr-mode-ui="enabled: false"
+    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+    renderer="logarithmicDepthBuffer: true; antialias: true;"
+    style="position:fixed; top:0; left:0; width:100vw; height:100vh;">
+
+    <a-marker preset="hiro" id="marcador">
+      <!-- Piso selva -->
+      <a-circle position="0 0.005 0" rotation="-90 0 0" radius="0.45"
+                color="#2d5016" opacity="0.75"></a-circle>
+
+      <!-- 🐵 MONO 3D (glTF público de un mono) -->
+      <a-entity
+        id="mono"
+        gltf-model="https://cdn.jsdelivr.net/gh/KhronosGroup/glTF-Sample-Models@master/2.0/Monkey/glTF-Binary/Monkey.glb"
+        position="0 0 0"
+        scale="0.25 0.25 0.25"
+        rotation="0 0 0">
+      </a-entity>
+
+      <a-entity id="contenedorMonedas"></a-entity>
+      <a-entity id="contenedorEnemigos"></a-entity>
+    </a-marker>
+
+    <a-entity camera></a-entity>
+  </a-scene>
+
+  <div id="controles" style="
+    position:fixed !important; bottom:20px !important; right:15px !important;
+    z-index:2147483647 !important; display:grid !important;
+    grid-template-columns:62px 62px 62px; grid-template-rows:62px 62px 62px;
+    gap:6px; pointer-events:auto !important;">
+    <button onclick="mover('arriba')"    style="grid-column:2; grid-row:1; width:62px; height:62px; font-size:26px; border-radius:12px; border:2px solid white; background:rgba(30,30,30,0.95); color:white; padding:0; touch-action:manipulation;">⬆️</button>
+    <button onclick="mover('izquierda')" style="grid-column:1; grid-row:2; width:62px; height:62px; font-size:26px; border-radius:12px; border:2px solid white; background:rgba(30,30,30,0.95); color:white; padding:0; touch-action:manipulation;">⬅️</button>
+    <button onclick="girar('izq')"       style="grid-column:2; grid-row:2; width:62px; height:62px; font-size:22px; border-radius:12px; border:2px solid white; background:rgba(255,215,0,0.95); color:black; padding:0; touch-action:manipulation;">🔄</button>
+    <button onclick="mover('derecha')"   style="grid-column:3; grid-row:2; width:62px; height:62px; font-size:26px; border-radius:12px; border:2px solid white; background:rgba(30,30,30,0.95); color:white; padding:0; touch-action:manipulation;">➡️</button>
+    <button onclick="mover('abajo')"     style="grid-column:2; grid-row:3; width:62px; height:62px; font-size:26px; border-radius:12px; border:2px solid white; background:rgba(30,30,30,0.95); color:white; padding:0; touch-action:manipulation;">⬇️</button>
+  </div>
+
+<script>
+/* =========================
+   ESTADO DEL JUEGO
+   ========================= */
+let puntos = 0, tiempo = 90, nivel = 1;
+let partidaActiva = true;
+let intervaloTiempo = null;
+let record = parseInt(localStorage.getItem('monoBananasRecord')) || 0;
+let nivelCompletado = false;
+let bananasDelNivel = 0;
+
+const MAX_NIVEL = 3;
+const TIEMPOS    = { 1: 90, 2: 60, 3: 40 };
+const MONEDAS_N  = { 1: 5,  2: 6,  3: 8 };
+const ENEMIGOS_N = { 1: 2,  2: 4,  3: 6 };
+
+let robotX = 0, robotZ = 0;
+let robotRot = 0;
+const robotVel = 0.04;
+const robotGiro = 20;
+const LIMITE_MARCADOR = 0.35;
+
+const $puntos = document.getElementById('puntos');
+const $tiempo = document.getElementById('tiempo');
+const $monedas = document.getElementById('monedas');
+const $record = document.getElementById('record');
+const $nivel  = document.getElementById('nivel');
+$record.textContent = record;
+
+/* =========================
+   SONIDOS
+   ========================= */
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function sonar(freq=800, dur=0.12, tipo='sine'){
+  try {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = tipo; o.frequency.value = freq;
+    o.connect(g); g.connect(audioCtx.destination);
+    g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+dur);
+    o.start(); o.stop(audioCtx.currentTime+dur);
+  } catch(e) {}
+}
+// 🍌 Banana: sonido agudo y alegre
+const sonidoBanana  = () => {
+  sonar(1400, 0.08, 'square');
+  setTimeout(() => sonar(1800, 0.10, 'square'), 80);
+};
+// 🐆 Enemigo: gruñido grave
+const sonidoEnemigo = () => sonar(140, 0.4, 'sawtooth');
+const sonidoVictoria = () => [523,659,784,1046].forEach((f,i)=>
+  setTimeout(()=>sonar(f,0.25,'triangle'), i*180));
+// 💀 Derrota: sonido triste descendente
+const sonidoDerrota = () => [500, 400, 300, 200].forEach((f,i)=>
+  setTimeout(()=>sonar(f, 0.3, 'sine'), i*200));
+
+/* =========================
+   MOVIMIENTO DEL MONO
+   ========================= */
+function actualizarMono(){
+  const mono = document.getElementById('mono');
+  if(!mono) return;
+  mono.setAttribute('position', `${robotX.toFixed(2)} 0 ${robotZ.toFixed(2)}`);
+  mono.setAttribute('rotation', `0 ${robotRot} 0`);
+}
+
+function mover(dir){
+  if(!partidaActiva || nivelCompletado) return;
+  if(dir==='arriba')    robotZ -= robotVel;
+  if(dir==='abajo')     robotZ += robotVel;
+  if(dir==='izquierda') robotX -= robotVel;
+  if(dir==='derecha')   robotX += robotVel;
+  robotX = Math.max(-LIMITE_MARCADOR, Math.min(LIMITE_MARCADOR, robotX));
+  robotZ = Math.max(-LIMITE_MARCADOR, Math.min(LIMITE_MARCADOR, robotZ));
+  actualizarMono();
+  detectarColisiones();
+}
+
+function girar(sentido){
+  if(!partidaActiva || nivelCompletado) return;
+  robotRot += (sentido==='izq' ? -robotGiro : robotGiro);
+  actualizarMono();
+}
+
+/* =========================
+   CONTADOR DE BANANAS
+   ========================= */
+function actualizarContadorBananas(recogidas){
+  $monedas.textContent = `${recogidas}/${bananasDelNivel}`;
+}
+
+/* =========================
+   COLISIONES
+   ========================= */
+function detectarColisiones(){
+  if (nivelCompletado) return;
+
+  const radioColision = 0.18;
+
+  document.querySelectorAll('.moneda, .enemigo').forEach(obj=>{
+    if(obj.getAttribute('visible') === false) return;
+
+    const pos = obj.getAttribute('position');
+    const dx = pos.x - robotX;
+    const dz = pos.z - robotZ;
+    const dist = Math.sqrt(dx*dx + dz*dz);
+
+    if(dist < radioColision){
+      if(obj.classList.contains('moneda')) {
+        // 🍌 Banana = +10 puntos
+        puntos += 10;
+        sonidoBanana();
+      } else if(obj.classList.contains('enemigo')) {
+        // 🐆 Enemigo = -15 puntos
+        puntos -= 15;
+        sonidoEnemigo();
+      }
+      $puntos.textContent = puntos;
+      obj.setAttribute('visible', false);
+
+      // 💀 Derrota si puntos < 0
+      if (puntos < 0) {
+        puntos = 0;
+        $puntos.textContent = 0;
+        derrota("Te han comido");
+        return;
+      }
+
+      setTimeout(() => {
+        let visibles = 0;
+        document.querySelectorAll('.moneda').forEach(m => {
+          if (m.getAttribute('visible') !== false) visibles++;
+        });
+        const rec = bananasDelNivel - visibles;
+        actualizarContadorBananas(rec);
+
+        if (rec >= bananasDelNivel && !nivelCompletado) {
+          nivelCompletado = true;
+          partidaActiva = false;
+          setTimeout(pasarNivel, 400);
+        }
+      }, 50);
+    }
+  });
+}
+
+/* =========================
+   GENERADORES
+   ========================= */
+function posAleatoria(){
+  const x = (Math.random()*0.7 - 0.35).toFixed(2);
+  const z = (Math.random()*0.7 - 0.35).toFixed(2);
+  const y = (0.08 + Math.random()*0.06).toFixed(2);
+  return `${x} ${y} ${z}`;
+}
+
+// 🍌 Banana (cilindro amarillo curvado = banana estilizada)
+function crearBanana(){
+  const el = document.createElement('a-entity');
+  el.setAttribute('class','moneda');
+  el.setAttribute('position', posAleatoria());
+  el.setAttribute('visible', 'true');
+
+  // Cuerpo de la banana (cilindro delgado amarillo)
+  const cuerpo = document.createElement('a-cylinder');
+  cuerpo.setAttribute('radius', '0.035');
+  cuerpo.setAttribute('height', '0.18');
+  cuerpo.setAttribute('color', '#FFE135');
+  cuerpo.setAttribute('rotation', '0 0 45');
+  el.appendChild(cuerpo);
+
+  // Punta café
+  const punta = document.createElement('a-sphere');
+  punta.setAttribute('radius', '0.02');
+  punta.setAttribute('color', '#5C3317');
+  punta.setAttribute('position', '0.06 0.08 0');
+  el.appendChild(punta);
+
+  // Animación de giro
+  el.setAttribute('animation',
+    'property: rotation; to: 0 360 0; loop: true; dur: 2000');
+
+  return el;
+}
+
+// 🐆 Enemigo: pantera/jaguar (esfera roja con ojos)
+function crearEnemigo(){
+  const el = document.createElement('a-entity');
+  el.setAttribute('class','enemigo');
+  el.setAttribute('position', posAleatoria());
+  el.setAttribute('visible', 'true');
+
+  // Cuerpo (esfera oscura rojiza)
+  const cuerpo = document.createElement('a-sphere');
+  cuerpo.setAttribute('radius', '0.08');
+  cuerpo.setAttribute('color', '#8B0000');
+  el.appendChild(cuerpo);
+
+  // Ojos amarillos brillantes
+  const ojo1 = document.createElement('a-sphere');
+  ojo1.setAttribute('radius', '0.015');
+  ojo1.setAttribute('color', '#FFFF00');
+  ojo1.setAttribute('position', '-0.03 0.02 0.07');
+  el.appendChild(ojo1);
+
+  const ojo2 = document.createElement('a-sphere');
+  ojo2.setAttribute('radius', '0.015');
+  ojo2.setAttribute('color', '#FFFF00');
+  ojo2.setAttribute('position', '0.03 0.02 0.07');
+  el.appendChild(ojo2);
+
+  // Animación de acecho
+  el.setAttribute('animation',
+    'property: position; dir: alternate; loop: true; dur: 700; to: 0 0.15 0');
+
+  return el;
+}
+
+/* =========================
+   CARGAR NIVEL
+   ========================= */
+function cargarNivel(){
+  document.getElementById('contenedorMonedas').innerHTML = '';
+  document.getElementById('contenedorEnemigos').innerHTML = '';
+
+  nivelCompletado = false;
+  partidaActiva = true;
+  bananasDelNivel = MONEDAS_N[nivel];
+
+  for(let i=0; i<bananasDelNivel; i++)
+    document.getElementById('contenedorMonedas').appendChild(crearBanana());
+  for(let i=0; i<ENEMIGOS_N[nivel]; i++)
+    document.getElementById('contenedorEnemigos').appendChild(crearEnemigo());
+
+  robotX = 0; robotZ = 0; robotRot = 0;
+  actualizarMono();
+
+  tiempo = TIEMPOS[nivel];
+  $tiempo.textContent = tiempo;
+  $nivel.textContent = nivel;
+
+  actualizarContadorBananas(0);
+}
+
+/* =========================
+   PASAR DE NIVEL
+   ========================= */
+function pasarNivel() {
+  clearInterval(intervaloTiempo);
+
+  if (nivel < MAX_NIVEL) {
+    mostrarMensaje(`🐵 ¡Nivel ${nivel} completado!`,
+                   `¡A por más bananas en el nivel ${nivel + 1}!`);
+    setTimeout(() => {
+      quitarMensaje();
+      nivel++;
+      cargarNivel();
+      iniciarTemporizador();
+    }, 2200);
+  } else {
+    quitarMensaje();
+    sonidoVictoria();
+
+    if (puntos > record) {
+      record = puntos;
+      localStorage.setItem('monoBananasRecord', record);
+      $record.textContent = record;
+    }
+
+    document.getElementById('puntosFinales').textContent = 'Puntos: ' + puntos;
+    document.getElementById('recordFinal').textContent = 'Récord: ' + record;
+    document.getElementById('victoria').style.display = 'block';
+  }
+}
+
+/* =========================
+   💀 DERROTA
+   ========================= */
+function derrota(mensaje) {
+  clearInterval(intervaloTiempo);
+  partidaActiva = false;
+  nivelCompletado = true;
+  quitarMensaje();
+  sonidoDerrota();
+
+  document.getElementById('tituloDerrota').textContent = '💀 ¡Te comieron! 💀';
+  document.getElementById('subtituloDerrota').textContent = mensaje;
+  document.getElementById('puntosDerrota').textContent = 'Puntos: ' + puntos;
+
+  if (puntos > record) {
+    record = puntos;
+    localStorage.setItem('monoBananasRecord', record);
+    $record.textContent = record;
+  }
+  document.getElementById('recordDerrota').textContent = 'Récord: ' + record;
+
+  document.getElementById('derrota').style.display = 'block';
+}
+
+/* =========================
+   MENSAJE FLOTANTE
+   ========================= */
+function mostrarMensaje(titulo, subtitulo = '') {
+  quitarMensaje();
+  const msg = document.createElement('div');
+  msg.id = 'mensajeNivel';
+  msg.innerHTML = `
+    <div style="font-size:34px; color:#FFD700; font-weight:bold;">${titulo}</div>
+    <div style="font-size:18px; margin-top:10px;">${subtitulo}</div>
+  `;
+  document.body.appendChild(msg);
+}
+
+function quitarMensaje() {
+  const el = document.getElementById('mensajeNivel');
+  if (el) el.remove();
+}
+
+/* =========================
+   TEMPORIZADOR
+   ========================= */
+function iniciarTemporizador(){
+  clearInterval(intervaloTiempo);
+  intervaloTiempo = setInterval(()=>{
+    if(!partidaActiva || nivelCompletado) return;
+    tiempo--;
+    $tiempo.textContent = tiempo;
+    if(tiempo <= 0){
+      clearInterval(intervaloTiempo);
+      derrota("Se te fue el Mono Tiempo");
+    }
+  }, 1000);
+}
+
+/* =========================
+   REINICIAR
+   ========================= */
+function reiniciarJuego(){
+  clearInterval(intervaloTiempo);
+  quitarMensaje();
+
+  puntos = 0; nivel = 1; partidaActiva = true; nivelCompletado = false;
+  $puntos.textContent = puntos;
+
+  document.getElementById('victoria').style.display = 'none';
+  document.getElementById('derrota').style.display = 'none';
+
+  cargarNivel();
+  iniciarTemporizador();
+}
+
+/* =========================
+   INICIO
+   ========================= */
+window.addEventListener('load', () => {
+  cargarNivel();
+  iniciarTemporizador();
+  document.getElementById('reiniciar').addEventListener('click', reiniciarJuego);
+});
+</script>
+
+</body>
+</html>
