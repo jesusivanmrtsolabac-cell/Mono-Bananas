@@ -96,44 +96,44 @@
       <a-circle position="0 0.005 0" rotation="-90 0 0" radius="0.45"
                 color="#2d5016" opacity="0.75"></a-circle>
 
-      <!-- 🐵 MONO 3D (con primitivas A-Frame) -->
-      <a-entity id="mono" position="0 0 0" rotation="0 0 0">
+      <!-- 🐵 MONO 3D GRANDE Y VISIBLE -->
+      <a-entity id="mono" position="0 0 0" rotation="0 0 0" scale="2 2 2">
 
         <!-- Cuerpo -->
-        <a-sphere position="0 0.09 0" radius="0.07" color="#8B5A2B"></a-sphere>
+        <a-sphere position="0 0.13 0" radius="0.07" color="#8B5A2B"></a-sphere>
 
         <!-- Cabeza -->
-        <a-sphere position="0 0.20 0" radius="0.055" color="#A0522D"></a-sphere>
+        <a-sphere position="0 0.24 0" radius="0.055" color="#A0522D"></a-sphere>
 
         <!-- Hocico -->
-        <a-sphere position="0 0.185 0.045" radius="0.03" color="#F5DEB3"></a-sphere>
+        <a-sphere position="0 0.225 0.045" radius="0.03" color="#F5DEB3"></a-sphere>
 
         <!-- Ojos -->
-        <a-sphere position="-0.02 0.22 0.045" radius="0.008" color="#000"></a-sphere>
-        <a-sphere position=" 0.02 0.22 0.045" radius="0.008" color="#000"></a-sphere>
+        <a-sphere position="-0.02 0.26 0.045" radius="0.008" color="#000"></a-sphere>
+        <a-sphere position=" 0.02 0.26 0.045" radius="0.008" color="#000"></a-sphere>
 
         <!-- Orejas -->
-        <a-sphere position="-0.05 0.22 0" radius="0.02" color="#8B5A2B"></a-sphere>
-        <a-sphere position=" 0.05 0.22 0" radius="0.02" color="#8B5A2B"></a-sphere>
+        <a-sphere position="-0.05 0.26 0" radius="0.02" color="#8B5A2B"></a-sphere>
+        <a-sphere position=" 0.05 0.26 0" radius="0.02" color="#8B5A2B"></a-sphere>
 
         <!-- Brazos -->
-        <a-cylinder position="-0.075 0.10 0" radius="0.012" height="0.08"
+        <a-cylinder position="-0.075 0.14 0" radius="0.012" height="0.08"
                     color="#8B5A2B" rotation="0 0 30"></a-cylinder>
-        <a-cylinder position=" 0.075 0.10 0" radius="0.012" height="0.08"
+        <a-cylinder position=" 0.075 0.14 0" radius="0.012" height="0.08"
                     color="#8B5A2B" rotation="0 0 -30"></a-cylinder>
 
         <!-- Piernas -->
-        <a-cylinder position="-0.03 0.02 0" radius="0.014" height="0.07"
+        <a-cylinder position="-0.03 0.06 0" radius="0.014" height="0.07"
                     color="#8B5A2B"></a-cylinder>
-        <a-cylinder position=" 0.03 0.02 0" radius="0.014" height="0.07"
+        <a-cylinder position=" 0.03 0.06 0" radius="0.014" height="0.07"
                     color="#8B5A2B"></a-cylinder>
 
         <!-- Cola -->
-        <a-cylinder position="0 0.06 -0.09" radius="0.008" height="0.1"
+        <a-cylinder position="0 0.10 -0.09" radius="0.008" height="0.1"
                     color="#8B5A2B" rotation="70 0 0"></a-cylinder>
 
         <!-- Indicador de dirección (nariz amarilla al frente) -->
-        <a-cone position="0 0.14 -0.08" radius-bottom="0.02" radius-top="0"
+        <a-cone position="0 0.18 -0.08" radius-bottom="0.02" radius-top="0"
                 height="0.05" color="#FFD700" rotation="90 0 0"></a-cone>
       </a-entity>
 
@@ -160,7 +160,7 @@
 /* =========================
    ESTADO DEL JUEGO
    ========================= */
-let puntos = 30, tiempo = 90, nivel = 1;   // ← EMPIEZA CON 30 PUNTOS
+let puntos = 30, tiempo = 90, nivel = 1;
 let partidaActiva = true;
 let intervaloTiempo = null;
 let record = parseInt(localStorage.getItem('monoBananasRecord')) || 0;
@@ -252,7 +252,7 @@ function actualizarContadorBananas(recogidas){
 function detectarColisiones(){
   if (nivelCompletado) return;
 
-  const radioColision = 0.18;
+  const radioColision = 0.14;   // ajustado a bananas más pequeñas
 
   document.querySelectorAll('.moneda, .enemigo').forEach(obj=>{
     if(obj.getAttribute('visible') === false) return;
@@ -309,7 +309,7 @@ function posAleatoria(){
   return `${x} ${y} ${z}`;
 }
 
-/* 🍌 Banana */
+/* 🍌 Banana más pequeña */
 function crearBanana(){
   const el = document.createElement('a-entity');
   el.setAttribute('class','moneda');
@@ -317,16 +317,16 @@ function crearBanana(){
   el.setAttribute('visible', 'true');
 
   const cuerpo = document.createElement('a-cylinder');
-  cuerpo.setAttribute('radius', '0.035');
-  cuerpo.setAttribute('height', '0.18');
+  cuerpo.setAttribute('radius', '0.02');
+  cuerpo.setAttribute('height', '0.12');
   cuerpo.setAttribute('color', '#FFE135');
   cuerpo.setAttribute('rotation', '0 0 45');
   el.appendChild(cuerpo);
 
   const punta = document.createElement('a-sphere');
-  punta.setAttribute('radius', '0.02');
+  punta.setAttribute('radius', '0.015');
   punta.setAttribute('color', '#5C3317');
-  punta.setAttribute('position', '0.06 0.08 0');
+  punta.setAttribute('position', '0.04 0.05 0');
   el.appendChild(punta);
 
   el.setAttribute('animation',
@@ -488,7 +488,7 @@ function reiniciarJuego(){
   clearInterval(intervaloTiempo);
   quitarMensaje();
 
-  puntos = 30;              // ← REINICIA CON 30 PUNTOS
+  puntos = 30;
   nivel = 1;
   partidaActiva = true;
   nivelCompletado = false;
