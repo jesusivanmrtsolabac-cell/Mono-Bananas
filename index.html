@@ -66,7 +66,6 @@
 
   <div id="nivelInfo">Nivel <span id="nivel">1</span> / 3</div>
 
-  <!-- 🏆 VICTORIA -->
   <div id="victoria">
     <h1>🏆 ¡VICTORIA! 🏆</h1>
     <h2>🐵 ¡El mono se comió todas las bananas! 🍌</h2>
@@ -75,7 +74,6 @@
     <button onclick="reiniciarJuego()">Jugar de nuevo</button>
   </div>
 
-  <!-- 💀 DERROTA -->
   <div id="derrota">
     <h1 id="tituloDerrota">💀 ¡Te comieron! 💀</h1>
     <h2 id="subtituloDerrota">Te han comido</h2>
@@ -92,49 +90,49 @@
 
     <a-marker preset="hiro" id="marcador">
 
-      <!-- Piso selva -->
+      <!-- Piso verde claro para que el mono contraste -->
       <a-circle position="0 0.005 0" rotation="-90 0 0" radius="0.45"
-                color="#2d5016" opacity="0.75"></a-circle>
+                color="#90EE90" opacity="0.6"></a-circle>
 
-      <!-- 🐵 MONO 3D GRANDE Y VISIBLE -->
-      <a-entity id="mono" position="0 0 0" rotation="0 0 0" scale="2 2 2">
+      <!-- 🐵 MONO GRANDE (coordenadas ya dobladas, sin scale) -->
+      <a-entity id="mono" position="0 0 0" rotation="0 0 0">
 
         <!-- Cuerpo -->
-        <a-sphere position="0 0.13 0" radius="0.07" color="#8B5A2B"></a-sphere>
+        <a-sphere position="0 0.30 0" radius="0.14" color="#8B5A2B"></a-sphere>
 
         <!-- Cabeza -->
-        <a-sphere position="0 0.24 0" radius="0.055" color="#A0522D"></a-sphere>
+        <a-sphere position="0 0.52 0" radius="0.11" color="#A0522D"></a-sphere>
 
         <!-- Hocico -->
-        <a-sphere position="0 0.225 0.045" radius="0.03" color="#F5DEB3"></a-sphere>
+        <a-sphere position="0 0.49 0.09" radius="0.06" color="#F5DEB3"></a-sphere>
 
         <!-- Ojos -->
-        <a-sphere position="-0.02 0.26 0.045" radius="0.008" color="#000"></a-sphere>
-        <a-sphere position=" 0.02 0.26 0.045" radius="0.008" color="#000"></a-sphere>
+        <a-sphere position="-0.04 0.55 0.09" radius="0.016" color="#000000"></a-sphere>
+        <a-sphere position=" 0.04 0.55 0.09" radius="0.016" color="#000000"></a-sphere>
 
         <!-- Orejas -->
-        <a-sphere position="-0.05 0.26 0" radius="0.02" color="#8B5A2B"></a-sphere>
-        <a-sphere position=" 0.05 0.26 0" radius="0.02" color="#8B5A2B"></a-sphere>
+        <a-sphere position="-0.10 0.55 0" radius="0.04" color="#8B5A2B"></a-sphere>
+        <a-sphere position=" 0.10 0.55 0" radius="0.04" color="#8B5A2B"></a-sphere>
 
         <!-- Brazos -->
-        <a-cylinder position="-0.075 0.14 0" radius="0.012" height="0.08"
+        <a-cylinder position="-0.15 0.30 0" radius="0.024" height="0.16"
                     color="#8B5A2B" rotation="0 0 30"></a-cylinder>
-        <a-cylinder position=" 0.075 0.14 0" radius="0.012" height="0.08"
+        <a-cylinder position=" 0.15 0.30 0" radius="0.024" height="0.16"
                     color="#8B5A2B" rotation="0 0 -30"></a-cylinder>
 
         <!-- Piernas -->
-        <a-cylinder position="-0.03 0.06 0" radius="0.014" height="0.07"
+        <a-cylinder position="-0.06 0.12 0" radius="0.028" height="0.14"
                     color="#8B5A2B"></a-cylinder>
-        <a-cylinder position=" 0.03 0.06 0" radius="0.014" height="0.07"
+        <a-cylinder position=" 0.06 0.12 0" radius="0.028" height="0.14"
                     color="#8B5A2B"></a-cylinder>
 
         <!-- Cola -->
-        <a-cylinder position="0 0.10 -0.09" radius="0.008" height="0.1"
+        <a-cylinder position="0 0.24 -0.18" radius="0.016" height="0.20"
                     color="#8B5A2B" rotation="70 0 0"></a-cylinder>
 
-        <!-- Indicador de dirección (nariz amarilla al frente) -->
-        <a-cone position="0 0.18 -0.08" radius-bottom="0.02" radius-top="0"
-                height="0.05" color="#FFD700" rotation="90 0 0"></a-cone>
+        <!-- Nariz amarilla (indicador de dirección) -->
+        <a-cone position="0 0.40 -0.18" radius-bottom="0.04" radius-top="0"
+                height="0.10" color="#FFD700" rotation="90 0 0"></a-cone>
       </a-entity>
 
       <a-entity id="contenedorMonedas"></a-entity>
@@ -157,9 +155,6 @@
   </div>
 
 <script>
-/* =========================
-   ESTADO DEL JUEGO
-   ========================= */
 let puntos = 30, tiempo = 90, nivel = 1;
 let partidaActiva = true;
 let intervaloTiempo = null;
@@ -186,9 +181,6 @@ const $nivel  = document.getElementById('nivel');
 $record.textContent = record;
 $puntos.textContent = puntos;
 
-/* =========================
-   SONIDOS
-   ========================= */
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function sonar(freq=800, dur=0.12, tipo='sine'){
   try {
@@ -211,9 +203,6 @@ const sonidoVictoria = () => [523,659,784,1046].forEach((f,i)=>
 const sonidoDerrota = () => [500, 400, 300, 200].forEach((f,i)=>
   setTimeout(()=>sonar(f, 0.3, 'sine'), i*200));
 
-/* =========================
-   MOVIMIENTO DEL MONO
-   ========================= */
 function actualizarMono(){
   const mono = document.getElementById('mono');
   if(!mono) return;
@@ -239,20 +228,14 @@ function girar(sentido){
   actualizarMono();
 }
 
-/* =========================
-   CONTADOR DE BANANAS
-   ========================= */
 function actualizarContadorBananas(recogidas){
   $monedas.textContent = `${recogidas}/${bananasDelNivel}`;
 }
 
-/* =========================
-   COLISIONES
-   ========================= */
 function detectarColisiones(){
   if (nivelCompletado) return;
 
-  const radioColision = 0.14;   // ajustado a bananas más pequeñas
+  const radioColision = 0.14;
 
   document.querySelectorAll('.moneda, .enemigo').forEach(obj=>{
     if(obj.getAttribute('visible') === false) return;
@@ -273,7 +256,6 @@ function detectarColisiones(){
       $puntos.textContent = puntos;
       obj.setAttribute('visible', false);
 
-      // 💀 Derrota si puntos < 0
       if (puntos < 0) {
         puntos = 0;
         $puntos.textContent = 0;
@@ -299,17 +281,17 @@ function detectarColisiones(){
   });
 }
 
-/* =========================
-   GENERADORES
-   ========================= */
+/* Posiciones aleatorias SIN el centro (para no tapar al mono) */
 function posAleatoria(){
-  const x = (Math.random()*0.7 - 0.35).toFixed(2);
-  const z = (Math.random()*0.7 - 0.35).toFixed(2);
-  const y = (0.08 + Math.random()*0.06).toFixed(2);
-  return `${x} ${y} ${z}`;
+  let x, z, dist;
+  do {
+    x = (Math.random()*0.9 - 0.45);
+    z = (Math.random()*0.9 - 0.45);
+    dist = Math.sqrt(x*x + z*z);
+  } while (dist < 0.20);
+  return `${x.toFixed(2)} 0.05 ${z.toFixed(2)}`;
 }
 
-/* 🍌 Banana más pequeña */
 function crearBanana(){
   const el = document.createElement('a-entity');
   el.setAttribute('class','moneda');
@@ -335,7 +317,6 @@ function crearBanana(){
   return el;
 }
 
-/* 🐆 Pantera */
 function crearEnemigo(){
   const el = document.createElement('a-entity');
   el.setAttribute('class','enemigo');
@@ -365,9 +346,6 @@ function crearEnemigo(){
   return el;
 }
 
-/* =========================
-   CARGAR NIVEL
-   ========================= */
 function cargarNivel(){
   document.getElementById('contenedorMonedas').innerHTML = '';
   document.getElementById('contenedorEnemigos').innerHTML = '';
@@ -391,9 +369,6 @@ function cargarNivel(){
   actualizarContadorBananas(0);
 }
 
-/* =========================
-   PASAR DE NIVEL
-   ========================= */
 function pasarNivel() {
   clearInterval(intervaloTiempo);
 
@@ -422,9 +397,6 @@ function pasarNivel() {
   }
 }
 
-/* =========================
-   💀 DERROTA
-   ========================= */
 function derrota(mensaje) {
   clearInterval(intervaloTiempo);
   partidaActiva = false;
@@ -446,9 +418,6 @@ function derrota(mensaje) {
   document.getElementById('derrota').style.display = 'block';
 }
 
-/* =========================
-   MENSAJE FLOTANTE
-   ========================= */
 function mostrarMensaje(titulo, subtitulo = '') {
   quitarMensaje();
   const msg = document.createElement('div');
@@ -465,9 +434,6 @@ function quitarMensaje() {
   if (el) el.remove();
 }
 
-/* =========================
-   TEMPORIZADOR
-   ========================= */
 function iniciarTemporizador(){
   clearInterval(intervaloTiempo);
   intervaloTiempo = setInterval(()=>{
@@ -481,9 +447,6 @@ function iniciarTemporizador(){
   }, 1000);
 }
 
-/* =========================
-   REINICIAR
-   ========================= */
 function reiniciarJuego(){
   clearInterval(intervaloTiempo);
   quitarMensaje();
@@ -501,9 +464,6 @@ function reiniciarJuego(){
   iniciarTemporizador();
 }
 
-/* =========================
-   INICIO
-   ========================= */
 window.addEventListener('load', () => {
   cargarNivel();
   iniciarTemporizador();
